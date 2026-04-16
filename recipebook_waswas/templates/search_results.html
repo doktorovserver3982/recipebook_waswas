@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Результаты поиска</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="header">
+    <h2>🔎 Поиск рецептов</h2>
+    <div class="logo">
+        <a href="/">🍳 Recipe App</a>
+    </div>
+
+    <nav class="nav">
+        <a href="/">Главная</a>
+        <a href="/search/">Поиск</a>
+        <a href="#">План питания</a>
+        <a href="/favorites/">⭐ Избранное</a>
+    </nav>
+
+    <div class="profile">
+        <a href="#">Профиль</a>
+    </div>
+
+    <div class="auth">
+    {% if user.is_authenticated %}
+        <span>{{ user.username }}</span>
+        <a href="/accounts/logout/">Выйти</a>
+        <a href="/fridge/">Холодильник</a>
+    {% else %}
+        <a href="/accounts/login/">Войти</a>
+        <a href="/register/">Регистрация</a>
+    {% endif %}
+</div>
+</header>
+
+<!-- SEARCH -->
+<section class="search">
+    <form method="GET">
+        <input type="text" name="q" placeholder="Поиск...">
+        <button type="submit">Найти</button>
+    </form>
+</section>
+
+<!-- FILTERS -->
+<form method="GET" class="filters-form">
+
+    <!-- ПОИСК -->
+    <input
+        type="text"
+        name="q"
+        placeholder="Поиск..."
+        value="{{ request.GET.q }}"
+    >
+
+    <!-- ВРЕМЯ -->
+    <input
+            type="number"
+            name="time"
+
+        placeholder="Короче чем (минут)"
+        value="{{ request.GET.time }}">
+
+    <!-- ЦЕНА -->
+    <input
+        type="number"
+        name="max_price"
+        placeholder="Макс цена"
+        value="{{ request.GET.max_price }}"
+    >
+
+    <!-- ИНГРЕДИЕНТЫ -->
+    <select name="ingredients" multiple>
+        {% for ing in all_ingredients %}
+            <option value="{{ ing.name }}"
+                {% if ing.name in request.GET.getlist.ingredients %}
+                    selected
+                {% endif %}
+            >
+                {{ ing.name }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <!-- ХОЛОДИЛЬНИК -->
+    <label>
+        <input
+            type="checkbox"
+            name="ingredients_from_fridge"
+            value="1"
+            {% if request.GET.ingredients_from_fridge %}checked{% endif %}
+        >
+        Из моего холодильника
+    </label>
+    <!-- СОРТИРОВКА -->
+    <select name="sort">
+        <option value="">Без сортировки</option>
+        <option value="cheap" {% if request.GET.sort == "cheap" %}selected{% endif %}>
+            Сначала дешёвые
+        </option>
+    </select>
+<button type="submit" name="max_price" value="100">
+    До 100 ₽
+</button>
+    <button type="submit">Применить</button>
+</form>
+
+<!-- RESULT INFO -->
+<p style="padding: 10px;">
+    Найдено рецептов: {{ count }}
+</p>
+
+<!-- RESULTS -->
+<section class="recipes">
+    {% for recipe in recipes %}
+        <div class="card">
+            <a href="{% url 'recipe_page' recipe.id %}">
+                <img src="{{ recipe.image_url }}">
+                <h3>{{ recipe.title }}</h3>
+            </a>
+            <p>{{ recipe.description }}</p>
+             <div class="meta">
+                <span>⏱ {{ recipe.cook_time_minutes }} мин</span>
+                <span>💰 {{ recipe.get_total_cost }} ₽</span>
+                 <span>🍽 {{ recipe.get_cost_per_serving }} ₽ / порция</span>
+            </div>
+        <form method="POST" action="{% url 'toggle_save_recipe' recipe.id %}">
+    {% csrf_token %}
+
+    {% if recipe.id in saved_ids %}
+        <button>❤️ Убрать</button>
+    {% else %}
+        <button>🤍 Сохранить</button>
+    {% endif %}
+
+</form>
+        </div>
+
+    {% endfor %}
+</section>
+
+</body>
+</html>

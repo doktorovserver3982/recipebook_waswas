@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Главная — Recipe App</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+    <div class="logo">
+        <a href="/">🍳 Recipe App</a>
+    </div>
+
+    <nav class="nav">
+        <a href="/">Главная</a>
+        <a href="/search/">Поиск</a>
+        <a href="#">План питания</a>
+        <a href="/favorites/">⭐ Избранное</a>
+    </nav>
+
+    <div class="profile">
+        <a href="#">Профиль</a>
+    </div>
+
+    <div class="auth">
+    {% if user.is_authenticated %}
+        <span>{{ user.username }}</span>
+        <form action="{% url 'logout' %}" method="post">
+    {% csrf_token %} 
+    <button type="submit">Logout</button>
+</form>
+        <a href="/fridge/">Холодильник</a>
+    {% else %}
+        <a href="/accounts/login/">Войти</a>
+        <a href="/register/">Регистрация</a>
+    {% endif %}
+</div>
+</header>
+
+
+<!-- SEARCH AREA -->
+<section class="search-area">
+    <h1>Найди рецепт под свой бюджет</h1>
+    <p>Ищи по ингредиентам, времени и стоимости</p>
+
+    <form method="GET" action="/search/" class="search-form">
+        <input type="text" name="q" placeholder="Например: паста, суп, курица">
+        <button type="submit">Найти</button>
+    </form>
+</section>
+
+
+<!-- QUICK FILTERS -->
+<section class="quick-filters">
+    <button onclick="applyQuickFilter('time', 30)">⏱ До 30 минут</button>
+    <button onclick="applyQuickFilter('cheap', 1)">💸 Дешёвые</button>
+    <button onclick="applyQuickFilter('ingredients', 1)">🥕 Из того что есть</button>
+
+</section>
+
+
+<!-- POPULAR RECIPES -->
+<section class="recipes">
+    <h2>Популярные рецепты</h2>
+
+    <div class="recipes-grid">
+        {% for recipe_ in recipe %}
+            <div class="card">
+
+                <a href="{% url 'recipe_page' recipe_.id %}">
+                    <img src="{{ recipe_.image_url }}" alt="{{ recipe_.title }}">
+                    <h3>{{ recipe_.title }}</h3>
+                </a>
+
+                <p class="desc">
+                    {{ recipe_.description|default:"Без описания" }}
+                </p>
+
+                <div class="meta">
+                    <span>⏱ {{ recipe_.cook_time_minutes }} мин</span>
+                    <span>🍽 {{ recipe_.servings }}</span>
+                </div>
+                <p>💰 {{ recipe_.get_total_cost }} ₽</p>
+                <!-- SAVE BUTTON -->
+<form method="POST" action="{% url 'toggle_save_recipe' recipe.id %}">
+    {% csrf_token %}
+
+    {% if recipe.id in saved_ids %}
+        <button>❤️ Убрать</button>
+    {% else %}
+        <button>🤍 Сохранить</button>
+    {% endif %}
+
+</form>
+
+            </div>
+        {% empty %}
+            <p>Пока нет рецептов</p>
+        {% endfor %}
+    </div>
+</section>
+
+
+<!-- FEATURES -->
+<section class="features">
+    <div class="feature">
+        <h3>💰 Узнай стоимость блюда</h3>
+    </div>
+
+    <div class="feature">
+        <h3>⭐ Сохраняй рецепты</h3>
+    </div>
+
+    <div class="feature">
+        <h3>🥗 Подбор по ингредиентам</h3>
+    </div>
+</section>
+
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div>
+        <a href="#">О проекте</a>
+        <a href="#">Контакты</a>
+    </div>
+    <p>© 2026 Recipe App</p>
+</footer>
+
+
+<!-- JS -->
+<script>
+function applyQuickFilter(type, value) {
+    let url = new URL('/search/', window.location.origin);
+
+    if (type === 'time') {
+        url.searchParams.set('time', value);
+    }
+
+    if (type === 'cheap') {
+        url.searchParams.set('cheap', value);
+    }
+
+    if (type === 'ingredients') {
+        url.searchParams.set('ingredients', value);
+    }
+
+    window.location.href = url;
+}
+</script>
+
+</body>
+</html>

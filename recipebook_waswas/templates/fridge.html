@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<header class="header">
+    <div class="logo">
+        <a href="/">🍳 Recipe App</a>
+    </div>
+
+    <h2>🥶 Мой холодильник</h2>
+    <nav class="nav">
+        <a href="/">Главная</a>
+        <a href="/search/">Поиск</a>
+        <a href="#">План питания</a>
+        <a href="/favorites/">⭐ Избранное</a>
+    </nav>
+
+    <div class="profile">
+        <a href="#">Профиль</a>
+    </div>
+
+    <div class="auth">
+    {% if user.is_authenticated %}
+        <span>{{ user.username }}</span>
+        <a href="/accounts/logout/">Выйти</a>
+        <a href="/fridge/">Холодильник</a>
+    {% else %}
+        <a href="/accounts/login/">Войти</a>
+        <a href="/register/">Регистрация</a>
+    {% endif %}
+</div>
+</header>
+
+<!-- ДОБАВЛЕНИЕ -->
+<form method="POST" action="{% url 'add_to_fridge' %}">
+    {% csrf_token %}
+
+    <select name="ingredient_id">
+        {% for ing in all_ingredients %}
+            <option value="{{ ing.id }}">{{ ing.name }}</option>
+        {% endfor %}
+    </select>
+
+    <input type="number" name="quantity" placeholder="Количество">
+
+    <button type="submit">Добавить</button>
+</form>
+
+<hr>
+
+<!-- СПИСОК -->
+<ul>
+    {% for item in items %}
+        <li>
+            {{ item.ingredient.name }} — {{ item.quantity }}
+
+            <form method="POST" action="{% url 'remove_from_fridge' item.id %}" style="display:inline;">
+                {% csrf_token %}
+                <button>❌</button>
+            </form>
+        </li>
+    {% empty %}
+        <p>Холодильник пуст</p>
+    {% endfor %}
+</ul>
+</body>
+</html>

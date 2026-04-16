@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ recipe.title }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="logo">
+        <a href="/">🍳 Recipe App</a>
+    </div>
+
+    <nav class="nav">
+        <a href="/">Главная</a>
+        <a href="/search/">Поиск</a>
+        <a href="#">План питания</a>
+        <a href="/favorites/">⭐ Избранное</a>
+    </nav>
+
+    <div class="profile">
+        <a href="#">Профиль</a>
+    </div>
+
+    <div class="auth">
+    {% if user.is_authenticated %}
+        <span>{{ user.username }}</span>
+        <a href="/accounts/logout/">Выйти</a>
+        <a href="/fridge/">Холодильник</a>
+    {% else %}
+        <a href="/accounts/login/">Войти</a>
+        <a href="/register/">Регистрация</a>
+    {% endif %}
+</div>
+</header>
+
+<!-- RECIPE INFO -->
+<section class="recipe-info">
+    <h1>{{ recipe.title }}</h1>
+    <img src="{{ recipe.image_url }}" width="500" height="500">
+    <p>{{ recipe.description }}</p>
+
+    <p>⏱ {{ recipe.cook_time_minutes }} минут</p>
+    <p>🍽 {{ recipe.servings }} порций</p>
+    <p>💰 Стоимость: {{ total_cost }} ₽</p>
+    <p>🍽 За порцию: {{ cost_per_serving }} ₽</p>
+</section>
+
+<!-- INGREDIENTS -->
+<section>
+    <h2>Ингредиенты</h2>
+    <ul>
+        {% for item in ingredients %}
+            <li>
+                {{ item.ingredient.name }} — {{ item.quantity }} {{ item.ingredient.unit }}
+            </li>
+        {% endfor %}
+    </ul>
+</section>
+
+<!-- ACTIONS -->
+<section>
+<form method="POST" action="{% url 'toggle_save_recipe' recipe.id %}">
+    {% csrf_token %}
+
+    {% if recipe.id in saved_ids %}
+        <button>❤️ Убрать</button>
+    {% else %}
+        <button>🤍 Сохранить</button>
+    {% endif %}
+
+</form>
+
+    <button onclick="startCooking()">Начать готовку</button>
+</section>
+
+<!-- STEPS -->
+<section>
+    <h2>Шаги приготовления</h2>
+    <ol>
+        {% for step in recipe.steps %}
+            <li>{{ step }}</li>
+        {% endfor %}
+    </ol>
+</section>
+
+<script>
+function startCooking() {
+    alert("Cooking mode (экран 7) можно сделать следующим шагом");
+}
+</script>
+
+</body>
+</html>
